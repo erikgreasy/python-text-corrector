@@ -1,3 +1,4 @@
+import unicodedata
 from inc.lcs import lcs_fun
 from inc.editing_distance import edit_distance
 
@@ -13,14 +14,20 @@ def optimize_text_lcs(input_string, dictionary_string, output_file_name):
     # CORRECT TEXT
     corrected_output = []
 
+    i = 0
     for word in input_array:
         longest = 0
         norm_word = word.lower()
+        norm_word = unicodedata.normalize('NFD', norm_word.strip()).encode(
+            'ascii', 'ignore'
+        ).decode('utf-8')
 
         corrected_word = None
+        correction = False
 
         for dict_word in dictionary:
             if norm_word == dict_word:
+                correction = True
                 corrected_word = norm_word
                 break
 
@@ -28,15 +35,22 @@ def optimize_text_lcs(input_string, dictionary_string, output_file_name):
                                  len(norm_word), len(dict_word))
 
             if substr_len > longest:
+                correction = True
                 longest = substr_len
                 corrected_word = dict_word
 
                 if substr_len == len(word):
                     break
 
-        print(corrected_word)
-        corrected_output.append(corrected_word)
-        corrected_word = None
+        if correction:
+            print(corrected_word)
+            corrected_output.append(corrected_word)
+        else:
+            corrected_output.append(norm_word)
+        
+        i += 1
+        # if i == 500:
+        #     break
 
     # WRITE CORRECTED STRING TO OUTPUT FILE
     write_output_to_file(corrected_output, output_file_name)
@@ -58,6 +72,9 @@ def optimize_text_editing_distance(input_string, dictionary_string, output_file_
     for word in input_array:
         least_operations = 2147483647
         norm_word = word.lower()
+        norm_word = unicodedata.normalize('NFD', norm_word.strip()).encode(
+            'ascii', 'ignore'
+        ).decode('utf-8')
 
         corrected_word = None
 
@@ -74,7 +91,10 @@ def optimize_text_editing_distance(input_string, dictionary_string, output_file_
                 corrected_word = dict_word
 
         print(corrected_word)
-        corrected_output.append(corrected_word)
+        if corrected_word:
+            corrected_output.append(corrected_word)
+        else:
+            corrected_output.append(norm_word)
         corrected_word = None
 
     # WRITE CORRECTED STRING TO OUTPUT FILE
